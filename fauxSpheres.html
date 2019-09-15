@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Faux sphere rendering with interactive lighting!</title>
+<style>
+    canvas { 
+    border: 1px solid black; 
+    background: black;
+    }
+</style>
+</head>
+
+<body onload="draw();" align="center">
+        <canvas id="c1" height="400" width="400"></canvas>
+</body>
+
+<script>
+    lS = 0.7;
+    lSY = 0.7;
+
+    // Quick and dirty faux sphere rendering with interactive lighting
+    // by Hristo Izo Gueorguiev, Hristogueorguiev.com
+
+    function draw() {
+    const colorBitDepth = 4;
+    var canvas = document.getElementById('c1');
+    var ctx = canvas.getContext('2d');
+    var myImageData = ctx.createImageData(400, 400);
+    var data = myImageData.data 
+    
+    function fauxSphere(oX, oY, size, rTru, gTru, bTru, squishX, squishY, shiftLightsource, shiftLightsourceY, alpha) {
+    
+        for (var i = 0; i < myImageData.height; i += 1)
+        for (var j = 0; j < (myImageData.width * colorBitDepth); j += colorBitDepth) {
+            x = (((j - myImageData.width*colorBitDepth/2)/colorBitDepth) - oX)*squishX;
+            y = ((i - myImageData.height/2) - oY)*squishY;
+
+            r = Math.floor(Math.sqrt(x*x+y*y))
+            color = r < size ? (255 - r)-x*shiftLightsource+y*shiftLightsourceY : 0;
+            if (color) {
+            data[(i*myImageData.width * colorBitDepth)+j] = color & rTru;     
+            // red
+            data[(i*myImageData.width * colorBitDepth)+j + 1] = color & gTru; 
+            // green
+            data[(i*myImageData.width * colorBitDepth)+j + 2] = color & bTru; 
+            // blue
+            data[(i*myImageData.width * colorBitDepth)+j+3] = alpha;
+            // alpha
+            } 
+        }  
+    }
+
+    
+    function animateSpheres(ts){
+        oX = 0;
+        oY = 0;
+        fauxSphere(oX, oY, 250, 255, 0, 0, 1.0, 1.0, 0, 0,128);
+        fauxSphere(oX, oY, 100, 0, 255, 0, 1.0, 1.0, lS, lSY, 255);
+        fauxSphere(oX, oY, 95, 255, 255, 255, 1.0, 3.0, lS, lSY, 255);
+        fauxSphere(oX, oY, 30, 255, 0, 0, 1.0, 1.0, lS, lSY, 255);
+        fauxSphere(oX, oY, 10, 64, 64, 64, 1.0, 1.0, lS, lSY, 255);
+
+        fauxSphere(oX+100, oY+100, 80, 0, 0, 255, 1.0, 1.0, lS, lSY, 255);
+
+        ctx.putImageData(myImageData, 0, 0);
+        //lS -= 0.005;
+        //if (lS < -0.7) lS = 0.7;
+        
+        console.log(x,y,r,lS);
+        
+        window.requestAnimationFrame(animateSpheres);
+    }
+    
+    //animateSpheres();
+    document.onmousemove=function(e) {
+        lS = (e.clientX - window.innerWidth/2)/(window.innerWidth/2);
+        lSY = (e.clientY - window.innerHeight/2)/(window.innerHeight/2);
+        if (Math.abs(lS) > 0.7 ) lS = 0.7 * (lS/Math.abs(lS));
+        if (Math.abs(lSY) > 0.7 ) lSY = 0.7 * (lSY/Math.abs(lSY));
+    };
+    
+    window.requestAnimationFrame(animateSpheres);
+    }
+</script>
+</html>
